@@ -1,0 +1,13 @@
+build/
+*.obj
+*.dll
+*.exe
+*.pdb
+*.ilk
+*.exp
+*.lib
+activity.log
+last-error.txt
+imgui.ini
+settings.ini
+ui-language.txt
