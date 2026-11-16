@@ -22,8 +22,8 @@ Built for a normal Steam install. It reads Wolf only after you are in game. The 
 - Infinite vitality, undeath (never below 1), infinite spirit emblems
 - Lifesteal for a landed hit, a held block, a parry, and deathblows (regular, mini-boss, boss)
 - Gourd restore from parries, with a charge cap
-- Damage, vitality, and posture scale sliders (0.1x to 100x)
-- Catch lightning in the air, and Sakura Dance, each with its own key
+- Damage, vitality, and posture scale sliders (0.1x to 100x). Vitality size reduces damage taken. It does not freeze the bar
+- Catch lightning in the air, with its own key
 - Live vitality, posture, emblems, and gourd while you are in game
 
 Easier parry and 100% parry are not in this build. The public no-damage flag makes enemies immune too, so it is left out on purpose.
@@ -87,8 +87,8 @@ Feito para a instalação normal da Steam. O Wolf só é lido depois que você e
 - Vitalidade infinita, imortal (nunca abaixo de 1), emblemas espirituais infinitos
 - Roubo de vida por golpe acertado, bloqueio segurado, aparo e deathblow (comum, mini-chefe, chefe)
 - Restaura o gourd com aparos, com teto de cargas
-- Sliders de dano, vitalidade e postura (0.1x a 100x)
-- Pegar raio no ar, e Dança da Sakura, cada um com a própria tecla
+- Sliders de dano, vitalidade e postura (0.1x a 100x). O tamanho da vitalidade reduz o dano recebido. Não trava a barra
+- Pegar raio no ar, com a própria tecla
 - Vitalidade, postura, emblemas e gourd ao vivo quando você está no jogo
 
 Aparo fácil e aparo 100% não estão nesta versão. A flag pública de sem dano deixa os inimigos imunes também, então ficou de fora de propósito.

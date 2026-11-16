@@ -748,8 +748,6 @@ struct MeterScale {
     int appliedTenths;
 };
 
-static MeterScale g_statHpScale = {};
-static MeterScale g_combatHpScale = {};
 static MeterScale g_postureScale = {};
 
 static int ScaledMeter(int base, int tenths) {
@@ -798,13 +796,11 @@ static void ApplyMeter(int* cur, int* mx, MeterScale* slot, int tenths) {
     slot->appliedTenths = tenths;
 }
 
-void PlayerApplyScales(int healthTenths, int postureTenths) {
+void PlayerApplyScales(int, int postureTenths) {
     if (!PlayerVersionOk()) return;
+    // Vitality size is applied as less damage in the health hook. Writing a bigger max here
+    // made Sekiro clamp current back to full on the next frame, which is immortality.
     uint8_t* player = Player();
-    if (player && Readable(player + kHp, 8))
-        ApplyMeter((int*)(player + kHp), (int*)(player + kMaxHp), &g_statHpScale, healthTenths);
-    if (g_wolf && WolfId(g_wolf) && Readable(g_wolf + kCombatHp, 8))
-        ApplyMeter((int*)(g_wolf + kCombatHp), (int*)(g_wolf + kCombatHp + 4), &g_combatHpScale, healthTenths);
     if (player && Readable(player + kPosture, 8))
         ApplyMeter((int*)(player + kPosture), (int*)(player + kMaxPosture), &g_postureScale, postureTenths);
 }

@@ -135,7 +135,6 @@ static void DrawMenu() {
     ArtsLoad();
     ImGui::TextWrapped("%s", T("artsnote"));
     ArtsRow(T("bolt"), ArtsBolt);
-    ArtsRow(T("sakura"), ArtsSakura);
     const char* artsStatus = ArtsLastStatus();
     if (artsStatus[0]) ImGui::TextColored(ImVec4(0.95f, 0.82f, 0.35f, 1.f), "%s", artsStatus);
     ImGui::Separator();

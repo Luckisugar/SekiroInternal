@@ -376,6 +376,19 @@ static void ObserveBody(uint8_t* obj, int newHp, int oldHp) {
     if (!obj || !Readable(obj + kCombatHp, 8)) return;
     if (IsWolfId(obj)) {
         PlayerNoteWolf(obj);
+        // Rewriting max vitality made the game clamp current back to full, so hits never stuck.
+        // The slider now shortens the loss. 40 tenths is 4.0x, so a hit keeps a quarter of its damage.
+        int tenths = g_life.healthTenths;
+        if (tenths < 1 || tenths > 1000) tenths = 10;
+        if (tenths != 10 && oldHp > newHp) {
+            int loss = oldHp - newHp;
+            int kept = (int)(((long long)loss * 10 + tenths / 2) / tenths);
+            if (kept < 1) kept = 1;
+            if (kept > loss) kept = loss;
+            int target = oldHp - kept;
+            if (target < 0) target = 0;
+            if (target != newHp) *(int*)(obj + kCombatHp) = target;
+        }
         return;
     }
     if (!LooksLikeId(obj)) {

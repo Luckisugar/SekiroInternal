@@ -49,4 +49,4 @@ constexpr int kChrEntityId = 0x1A24;
 constexpr int kAirTimer = 0x8D0;
 constexpr uintptr_t kForceAnimEventRva = 0xBD84C0;
 constexpr int kCaughtBoltEffect = 9492;
-constexpr int kSakuraAnim = 316200;
+constexpr int kBoltEraseEffect = 9500;

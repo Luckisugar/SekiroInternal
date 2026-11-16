@@ -10,14 +10,12 @@
 #include <stdio.h>
 #include <string.h>
 
-// Caught bolt is speffect 9492, the effect a real airborne lightning hit applies
-// (state 356, body vfx 6000). It is not Genichiro's leap. Sakura Dance is animation
-// 316200 from Resurrection's c0000. ForceAnimation never asks if the art is unlocked
-// or if an emblem can be spent.
+// Caught bolt is speffect 9492, the charged state a real airborne lightning hit applies.
+// 9500 clears that enchant. The button arms it while Wolf is off the ground and drops it
+// after he has been landed for a moment, so a missed throw cannot stay stuck.
 
 static volatile LONG g_capture = -1;
 static volatile LONG g_phase = 0;
-static volatile LONG g_want[ArtsSlotCount] = {};
 static volatile LONG g_pack[ArtsSlotCount] = {};
 static bool g_wasDown[ArtsSlotCount] = {};
 static bool g_seenUp[256] = {};
@@ -28,6 +26,12 @@ static bool g_reservedLogged = false;
 static volatile LONG g_note = 0;
 static int g_lastSaid = 0;
 static DWORD g_saidAt = 0;
+static DWORD g_boltUntil = 0;
+static DWORD g_boltStart = 0;
+static DWORD g_boltRefresh = 0;
+static DWORD g_groundSince = 0;
+static bool g_boltLive = false;
+static bool g_boltSaidGround = false;
 static uint8_t* g_physSeen = nullptr;
 static float g_groundY = 0.f;
 static float g_lastY = 0.f;
@@ -177,8 +181,8 @@ void ArtsLoad() {
 }
 
 void ArtsRequest(int slot) {
-    if (slot < 0 || slot >= ArtsSlotCount) return;
-    InterlockedExchange(&g_want[slot], 1);
+    if (slot != ArtsBolt) return;
+    g_boltUntil = GetTickCount() + 1000;
 }
 
 void ArtsBeginCapture(int slot) {
@@ -257,10 +261,7 @@ static bool FnsOk() {
     HMODULE exe = GetModuleHandleW(L"sekiro.exe");
     if (!exe) return false;
     uint8_t* apply = (uint8_t*)exe + kApplySpEffectRva;
-    uint8_t* dance = (uint8_t*)exe + kForceAnimEventRva;
-    bool applyOk = Readable(apply, 3) && apply[0] == 0x48 && apply[1] == 0x8B && apply[2] == 0xC4;
-    bool danceOk = Readable(dance, 4) && dance[0] == 0x40 && dance[1] == 0x53 && dance[2] == 0x48 && dance[3] == 0x83;
-    g_fnOk = applyOk && danceOk;
+    g_fnOk = Readable(apply, 3) && apply[0] == 0x48 && apply[1] == 0x8B && apply[2] == 0xC4;
     if (!g_fnOk) Say(NoteExe);
     return g_fnOk;
 }
@@ -302,18 +303,9 @@ static uint8_t* AirModule(uint8_t* chr) {
     return behavior;
 }
 
-static int InvokeApply(void* chr, void* fn) {
+static int InvokeApply(void* chr, void* fn, int effect) {
     __try {
-        ((void(__fastcall*)(void*, int, long long, long long))fn)(chr, kCaughtBoltEffect, 0, 0);
-        return 1;
-    } __except (EXCEPTION_EXECUTE_HANDLER) {
-        return 0;
-    }
-}
-
-static int InvokeDance(void* eventMod, void* fn) {
-    __try {
-        ((void(__fastcall*)(void*, int))fn)(eventMod, kSakuraAnim);
+        ((void(__fastcall*)(void*, int, long long, long long))fn)(chr, effect, 0, 0);
         return 1;
     } __except (EXCEPTION_EXECUTE_HANDLER) {
         return 0;
@@ -363,60 +355,75 @@ static void TrackAir() {
     g_lastY = y;
     float vy = dy / dt;
     float rise = y - g_groundY;
-    bool falling = vy < -6.f;
+    bool rising = vy > 2.f;
+    bool falling = vy < -2.f;
     bool teleported = rise > 40.f || rise < -8.f;
-    if (teleported && !falling) {
+    if (teleported && !falling && !rising) {
         g_groundY = y;
         g_air = 0;
         return;
     }
-    bool onFloor = rise < 0.25f && rise > -0.20f && vy > -3.f && vy < 4.f;
-    if (onFloor) g_groundY = y;
     bool timed = false;
     uint8_t* beh = AirModule(chr);
     if (beh) {
         float timer = AirSeconds(beh);
         timed = PlausibleAir(timer) && timer > kAirMin;
     }
-    g_air = (rise > 0.35f || falling || timed) ? 1 : 0;
+    bool off = rise > 0.20f || rising || falling || timed;
+    bool planted = !off && vy > -0.8f && vy < 0.8f && rise < 0.15f && rise > -0.15f;
+    if (planted) g_groundY = y;
+    g_air = off ? 1 : 0;
 }
 
-static void DoBolt() {
-    if (!FnsOk()) return;
+static bool ChordDown(int slot);
+
+static bool ApplyEffect(int effect) {
+    if (!FnsOk()) return false;
     uint8_t* chr = ChrIns();
     if (!chr) {
         Say(NoteWolf);
-        return;
+        return false;
     }
+    HMODULE exe = GetModuleHandleW(L"sekiro.exe");
+    return InvokeApply(chr, (uint8_t*)exe + kApplySpEffectRva, effect) != 0;
+}
+
+// A press arms for a second, and holding the key keeps it armed. The enchant is
+// refreshed while Wolf is airborne so a short effect cannot drop before the swing.
+// After he has been on the ground, it is cleared. A one-frame air blip used to eat the press.
+static void MaintainBolt() {
+    DWORD now = GetTickCount();
+    if (ChordDown(ArtsBolt)) g_boltUntil = now + 1000;
+    bool want = now < g_boltUntil;
+    if (!want) g_boltSaidGround = false;
     if (!g_air) {
-        Say(g_yOk ? NoteGround : NoteNoMod);
+        if (want && g_yOk && !g_boltSaidGround) {
+            g_boltSaidGround = true;
+            Say(NoteGround);
+        }
+        if (g_groundSince == 0) g_groundSince = now;
+        if (g_boltLive && now - g_groundSince >= 200) {
+            ApplyEffect(kBoltEraseEffect);
+            g_boltLive = false;
+            g_boltStart = 0;
+        }
         return;
     }
-    HMODULE exe = GetModuleHandleW(L"sekiro.exe");
-    if (InvokeApply(chr, (uint8_t*)exe + kApplySpEffectRva)) Say(NoteArmed);
-    else Say(NoteBoltFail);
-}
-
-static void DoSakura() {
-    if (!FnsOk()) return;
-    uint8_t* chr = ChrIns();
-    if (!chr) {
-        Say(NoteWolf);
+    g_groundSince = 0;
+    g_boltSaidGround = false;
+    if (!want) return;
+    if (g_boltLive && now - g_boltStart > 1500) return;
+    if (g_boltLive && now - g_boltRefresh < 200) return;
+    if (!ApplyEffect(kCaughtBoltEffect)) {
+        if (!g_boltLive) Say(NoteBoltFail);
         return;
     }
-    uint8_t* eventMod = ModuleAt(chr, kChrEvent, 0x20);
-    if (!eventMod) {
-        Say(NoteNoEvent);
-        return;
+    g_boltRefresh = now;
+    if (!g_boltLive) {
+        g_boltLive = true;
+        g_boltStart = now;
+        Say(NoteArmed);
     }
-    HMODULE exe = GetModuleHandleW(L"sekiro.exe");
-    if (InvokeDance(eventMod, (uint8_t*)exe + kForceAnimEventRva)) Say(NoteSakura);
-    else Say(NoteSakuraFail);
-}
-
-static void Drain() {
-    if (InterlockedExchange(&g_want[ArtsBolt], 0)) DoBolt();
-    if (InterlockedExchange(&g_want[ArtsSakura], 0)) DoSakura();
 }
 
 static bool ChordDown(int slot) {
@@ -429,11 +436,8 @@ static bool ChordDown(int slot) {
 }
 
 static void PollHotkeys() {
-    for (int i = 0; i < ArtsSlotCount; ++i) {
-        bool down = ChordDown(i);
-        if (down && !g_wasDown[i]) ArtsRequest(i);
-        g_wasDown[i] = down;
-    }
+    bool down = ChordDown(ArtsBolt);
+    g_wasDown[ArtsBolt] = down;
 }
 
 static void PollCapture() {
@@ -476,6 +480,8 @@ void ArtsTick() {
     if (!g_loaded) ArtsLoad();
     TrackAir();
     if (g_capture >= 0) PollCapture();
-    else PollHotkeys();
-    Drain();
+    else {
+        PollHotkeys();
+        MaintainBolt();
+    }
 }
