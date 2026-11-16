@@ -20,11 +20,27 @@ Built for a normal Steam install. It reads Wolf only after you are in game. The 
 ## What it does
 
 - Infinite vitality, undeath (never below 1), infinite spirit emblems
-- Lifesteal rules for a landed hit, a held block, a parry, and deathblows (regular, mini-boss, boss)
-- Gourd restore from held blocks, with a charge cap
-- Live vitality, posture, emblems, and gourd while the watch is attached
+- Lifesteal for a landed hit, a held block, a parry, and deathblows (regular, mini-boss, boss)
+- Gourd restore from parries, with a charge cap
+- Damage, vitality, and posture scale sliders (0.1x to 100x)
+- Catch lightning in the air, and Sakura Dance, each with its own key
+- Live vitality, posture, emblems, and gourd while you are in game
 
 Easier parry and 100% parry are not in this build. The public no-damage flag makes enemies immune too, so it is left out on purpose.
+
+The FPS unlock and FSR upscale ship in the same zip. That half is [SekiroPerf](https://github.com/Luckisugar/SekiroPerf), a fork of LordDav0s/SekiroPerf. The menu DLL does not patch the game's swap chain. SekiroPerf draws the menu after the upscale.
+
+## Drop in
+
+[Latest release](https://github.com/Luckisugar/SekiroInternal/releases/latest). Unzip it into the folder that contains `sekiro.exe` (patch **1.06**). Start the game. **Insert** opens the menu.
+
+`dinput8.dll` in that zip is the loader. Leave it when the folder has no Mod Engine. If `modengine.ini` is already there, do not replace `dinput8.dll`. Point `chainDInput8DLLPath` at `\sekiro_perf.dll` instead. If `WeaponWheel.dll` is in the folder, set `ChainDLL="\WeaponWheel.dll"` in `sekiro_perf.ini`.
+
+Set the in-game resolution below your monitor (1280x720 on a 1080p screen). That is what the upscale speeds up. `sekiro_perf.log` should mention the wrap and `Also load SekiroInternal.dll: ok`.
+
+Resurrection, Weapon Wheel, and Precise Deflect Flash are other mods. They are not in this zip.
+
+`settings.ini`, `ui-language.txt`, and `activity.log` are created beside the DLL.
 
 ## Build
 
@@ -36,15 +52,15 @@ Windows, with **Visual Studio 2022 Build Tools** (the C++ x64 toolset).
 
 That writes `build\SekiroInternal.dll` and `build\Inject.exe`, then copies both next to the script.
 
-## Run
+## Run from a build
+
+Use the release zip above when you just want to play. `Inject.exe` is only for a build that is not loaded by SekiroPerf. Do not run it while `sekiro_perf.dll` is already loading this DLL.
 
 1. Start Sekiro and load into the game (1.06).
 2. Run `Inject.exe` from the folder that contains `SekiroInternal.dll`.
 3. Press **Insert**.
 
 If Sekiro is running as administrator, run the injector the same way. It does not elevate itself.
-
-`settings.ini`, `ui-language.txt`, and `activity.log` are created beside the DLL. Delete the folder to remove them.
 
 ## Notes
 
@@ -70,10 +86,24 @@ Feito para a instalação normal da Steam. O Wolf só é lido depois que você e
 
 - Vitalidade infinita, imortal (nunca abaixo de 1), emblemas espirituais infinitos
 - Roubo de vida por golpe acertado, bloqueio segurado, aparo e deathblow (comum, mini-chefe, chefe)
-- Restaura o gourd com bloqueio segurado, com teto de cargas
-- Vitalidade, postura, emblemas e gourd ao vivo quando a vigia está presa
+- Restaura o gourd com aparos, com teto de cargas
+- Sliders de dano, vitalidade e postura (0.1x a 100x)
+- Pegar raio no ar, e Dança da Sakura, cada um com a própria tecla
+- Vitalidade, postura, emblemas e gourd ao vivo quando você está no jogo
 
 Aparo fácil e aparo 100% não estão nesta versão. A flag pública de sem dano deixa os inimigos imunes também, então ficou de fora de propósito.
+
+O desbloqueio de FPS e o upscale FSR vão no mesmo zip. Essa metade é o [SekiroPerf](https://github.com/Luckisugar/SekiroPerf), fork do LordDav0s/SekiroPerf. A DLL do menu não mexe na swap chain. O SekiroPerf desenha o menu depois do upscale.
+
+### Soltar na pasta
+
+[Release mais nova](https://github.com/Luckisugar/SekiroInternal/releases/latest). Descompacta na pasta do `sekiro.exe` (patch **1.06**). Abre o jogo. **Insert** abre o menu.
+
+O `dinput8.dll` desse zip é o carregador. Deixa ele se a pasta não tem Mod Engine. Se já existe `modengine.ini`, não troca o `dinput8.dll`. Aponta `chainDInput8DLLPath` para `\sekiro_perf.dll`. Se `WeaponWheel.dll` está na pasta, põe `ChainDLL="\WeaponWheel.dll"` no `sekiro_perf.ini`.
+
+A resolução dentro do jogo tem que ficar abaixo do monitor (1280x720 numa tela 1080p). É isso que o upscale acelera. O `sekiro_perf.log` deve citar o wrap e `Also load SekiroInternal.dll: ok`.
+
+Resurrection, Weapon Wheel e Precise Deflect Flash são outros mods. Não estão neste zip.
 
 ### Compilar
 
@@ -85,7 +115,9 @@ Windows, com **Visual Studio 2022 Build Tools** (toolset C++ x64).
 
 Gera `build\SekiroInternal.dll` e `build\Inject.exe`, e copia os dois para a pasta do script.
 
-### Rodar
+### Rodar a partir de um build
+
+Usa o zip da release quando você só quer jogar. `Inject.exe` é só para um build que o SekiroPerf não está carregando. Não rode ele com `sekiro_perf.dll` já carregando esta DLL.
 
 1. Abra Sekiro e entre no jogo (1.06).
 2. Rode `Inject.exe` na mesma pasta da `SekiroInternal.dll`.
@@ -93,7 +125,7 @@ Gera `build\SekiroInternal.dll` e `build\Inject.exe`, e copia os dois para a pas
 
 Se Sekiro estiver como administrador, rode o injetor do mesmo jeito. Ele não pede elevação sozinho.
 
-`settings.ini`, `ui-language.txt` e `activity.log` nascem ao lado da DLL. Apagar a pasta remove tudo.
+`settings.ini`, `ui-language.txt` e `activity.log` nascem ao lado da DLL.
 
 ### Avisos
 

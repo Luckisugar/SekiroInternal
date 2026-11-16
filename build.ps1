@@ -12,6 +12,7 @@ $dllSrc = @(
     'src\overlay.cpp',
     'src\life.cpp',
     'src\player.cpp',
+    'src\arts.cpp',
     'src\log.cpp',
     'src\i18n.cpp',
     'third_party\hde\hde64.c',

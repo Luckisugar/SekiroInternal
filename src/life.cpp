@@ -88,6 +88,9 @@ static void Defaults(LifeSettings* s) {
     s->miniBossVitalityAtLeast = 800;
     s->bossVitalityAtLeast = 2200;
     s->gourdChargeCap = 10;
+    s->damageTenths = 10;
+    s->healthTenths = 10;
+    s->postureTenths = 10;
 }
 
 static wchar_t* IniPath() {
@@ -149,6 +152,9 @@ void LifeLoad() {
     g_life.gourd = GetPrivateProfileIntW(L"gourd", L"enabled", 1, ini) != 0;
     g_life.blocksPerCharge = GetPrivateProfileIntW(L"gourd", L"blocksPerCharge", 8, ini);
     g_life.gourdChargeCap = GetPrivateProfileIntW(L"gourd", L"gourdChargeCap", 10, ini);
+    g_life.damageTenths = GetPrivateProfileIntW(L"scale", L"damageTenths", 10, ini);
+    g_life.healthTenths = GetPrivateProfileIntW(L"scale", L"healthTenths", 10, ini);
+    g_life.postureTenths = GetPrivateProfileIntW(L"scale", L"postureTenths", 10, ini);
     g_life.parryIfPostureGainAtMost = GetPrivateProfileIntW(L"lifesteal", L"parryIfPostureGainAtMost", 18, ini);
     g_life.miniBossVitalityAtLeast = GetPrivateProfileIntW(L"lifesteal", L"miniBossVitalityAtLeast", 800, ini);
     g_life.bossVitalityAtLeast = GetPrivateProfileIntW(L"lifesteal", L"bossVitalityAtLeast", 2200, ini);
@@ -169,11 +175,14 @@ void LifeLoad() {
         g_life.rule[i].gourdEvery = GetPrivateProfileIntW(sec, L"gourdEvery", d.gourdEvery, ini);
         ClampRule(&g_life.rule[i]);
     }
-    g_life.blocksPerCharge = ClampInt(g_life.blocksPerCharge, 5, 10);
+    g_life.blocksPerCharge = ClampInt(g_life.blocksPerCharge, 0, 20);
     g_life.parryIfPostureGainAtMost = ClampInt(g_life.parryIfPostureGainAtMost, 1, 5000);
     g_life.miniBossVitalityAtLeast = ClampInt(g_life.miniBossVitalityAtLeast, 1, 100000);
     g_life.bossVitalityAtLeast = ClampInt(g_life.bossVitalityAtLeast, 1, 100000);
-    g_life.gourdChargeCap = ClampInt(g_life.gourdChargeCap, 1, 10);
+    g_life.gourdChargeCap = ClampInt(g_life.gourdChargeCap, 0, 20);
+    g_life.damageTenths = ClampInt(g_life.damageTenths, 1, 1000);
+    g_life.healthTenths = ClampInt(g_life.healthTenths, 1, 1000);
+    g_life.postureTenths = ClampInt(g_life.postureTenths, 1, 1000);
     g_loaded = true;
     PlayerSetGourdCap(g_life.gourdChargeCap);
 }
@@ -201,6 +210,15 @@ void LifeSave() {
     WritePrivateProfileStringW(L"lifesteal", L"miniBossVitalityAtLeast", num, ini);
     swprintf_s(num, L"%d", g_life.bossVitalityAtLeast);
     WritePrivateProfileStringW(L"lifesteal", L"bossVitalityAtLeast", num, ini);
+    g_life.damageTenths = ClampInt(g_life.damageTenths, 1, 1000);
+    g_life.healthTenths = ClampInt(g_life.healthTenths, 1, 1000);
+    g_life.postureTenths = ClampInt(g_life.postureTenths, 1, 1000);
+    swprintf_s(num, L"%d", g_life.damageTenths);
+    WritePrivateProfileStringW(L"scale", L"damageTenths", num, ini);
+    swprintf_s(num, L"%d", g_life.healthTenths);
+    WritePrivateProfileStringW(L"scale", L"healthTenths", num, ini);
+    swprintf_s(num, L"%d", g_life.postureTenths);
+    WritePrivateProfileStringW(L"scale", L"postureTenths", num, ini);
     for (int i = 0; i < ActCount; ++i) {
         ClampRule(&g_life.rule[i]);
         const wchar_t* sec = Section(i);
@@ -221,8 +239,8 @@ void LifeSave() {
         swprintf_s(num, L"%d", g_life.rule[i].gourdEvery);
         WritePrivateProfileStringW(sec, L"gourdEvery", num, ini);
     }
-    g_life.blocksPerCharge = ClampInt(g_life.blocksPerCharge, 5, 10);
-    g_life.gourdChargeCap = ClampInt(g_life.gourdChargeCap, 1, 10);
+    g_life.blocksPerCharge = ClampInt(g_life.blocksPerCharge, 0, 20);
+    g_life.gourdChargeCap = ClampInt(g_life.gourdChargeCap, 0, 20);
     PlayerSetGourdCap(g_life.gourdChargeCap);
 }
 
@@ -270,6 +288,7 @@ static void Apply(int action, int enemyMax) {
     if (!PlayerResolve(v)) return;
     int hp0 = v.hp;
     int go0 = v.gourd;
+    int em0 = v.emblems;
     if (g_life.lifesteal && rule.vitalityPercent > 0.f && Due(action, 0, rule.vitalityEvery))
         PlayerAddHp(PercentOf(v.maxHp, rule.vitalityPercent));
     if (g_life.lifesteal && rule.emblems > 0 && Due(action, 1, rule.emblemsEvery))
@@ -279,36 +298,36 @@ static void Apply(int action, int enemyMax) {
     if (g_life.gourd && rule.gourdCharges > 0.f) {
         int every = rule.gourdEvery < 1 ? 1 : rule.gourdEvery;
         g_every[action][3] += 1;
-        if (action == ActParry) g_life.gourdProgress = g_every[action][3] >= every ? 0 : g_every[action][3];
         if (g_every[action][3] >= every) {
             g_every[action][3] = 0;
-            if (action == ActParry) g_life.gourdProgress = 0;
             g_gourdAcc[action] += rule.gourdCharges;
             if (g_gourdAcc[action] > 10.f) g_gourdAcc[action] = 10.f;
             int whole = (int)g_gourdAcc[action];
             if (whole >= 1 && PlayerAddGourd(whole, g_life.gourdChargeCap)) g_gourdAcc[action] -= (float)whole;
+            else if (whole >= 1 && go0 >= g_life.gourdChargeCap) {
+                // A full gourd used to bank every later reward, then dump them
+                // the next time a charge was missing.
+                g_gourdAcc[action] = 0.f;
+            }
         }
     }
     g_paid[action] += 1;
-    if (g_paid[action] == 1) {
-        Vitals now{};
-        PlayerResolve(now);
-        Logf("Reward %s. Vitality %d -> %d, gourd %d -> %d. Enemy max %d.", ActionName(action), hp0, now.hp, go0, now.gourd, enemyMax);
-    }
+    Vitals now{};
+    if (PlayerResolve(now) && (g_paid[action] == 1 || now.hp != hp0 || now.gourd != go0 || now.emblems != em0))
+        Logf("Reward %s. Vitality %d -> %d, emblems %d -> %d, gourd %d -> %d. Enemy max %d.", ActionName(action), hp0, now.hp, em0, now.emblems, go0, now.gourd, enemyMax);
 }
 
 static int g_blockProgress = 0;
 
 static void OnGourdGuard() {
     if (!g_life.gourd) return;
-    int need = ClampInt(g_life.blocksPerCharge, 5, 10);
+    int need = ClampInt(g_life.blocksPerCharge, 0, 20);
     g_blockProgress += 1;
-    bool show = g_life.rule[ActParry].gourdCharges <= 0.f;
-    if (show) g_life.gourdProgress = g_blockProgress;
-    if (g_blockProgress < need) return;
-    g_blockProgress = 0;
-    if (show) g_life.gourdProgress = 0;
+    g_life.gourdProgress = g_blockProgress;
+    if (need > 0 && g_blockProgress < need) return;
     if (!PlayerAddGourd(1, g_life.gourdChargeCap)) return;
+    g_blockProgress = 0;
+    g_life.gourdProgress = 0;
     g_gourdPaid += 1;
     Vitals now{};
     if (PlayerResolve(now)) Logf("Gourd charge restored. Charges %d / %d.", now.gourd, g_life.gourdChargeCap);
@@ -353,7 +372,7 @@ static bool LooksLikeId(uint8_t* obj) {
     return true;
 }
 
-static void ObserveBody(uint8_t* obj, int newHp) {
+static void ObserveBody(uint8_t* obj, int newHp, int oldHp) {
     if (!obj || !Readable(obj + kCombatHp, 8)) return;
     if (IsWolfId(obj)) {
         PlayerNoteWolf(obj);
@@ -363,11 +382,22 @@ static void ObserveBody(uint8_t* obj, int newHp) {
         InterlockedIncrement(&g_idRejects);
         return;
     }
-    int oldHp = *(int*)(obj + kCombatHp);
     int maxHp = *(int*)(obj + kCombatHp + 4);
     if (oldHp <= 0 || oldHp > 100000 || newHp < -10 || newHp > 100000) return;
     if (newHp >= oldHp) return;
     if (maxHp < oldHp || maxHp > 100000) return;
+    int tenths = g_life.damageTenths;
+    if (tenths >= 1 && tenths <= 1000 && tenths != 10) {
+        int loss = oldHp - newHp;
+        long long scaled = ((long long)loss * tenths + 5) / 10;
+        if (scaled < 0) scaled = 0;
+        if (scaled > oldHp) scaled = oldHp;
+        int target = oldHp - (int)scaled;
+        if (target != newHp) {
+            *(int*)(obj + kCombatHp) = target;
+            newHp = target;
+        }
+    }
     DWORD now = GetTickCount();
     if (obj == g_lastObj && oldHp == g_lastOld && newHp == g_lastNew && now - g_lastTick < 5) return;
     g_lastObj = obj;
@@ -384,9 +414,9 @@ static void ObserveBody(uint8_t* obj, int newHp) {
     Enqueue(action, maxHp);
 }
 
-extern "C" void HealthObserve(uint8_t* obj, int newHp) {
+extern "C" void HealthObserve(uint8_t* obj, int newHp, int oldHp) {
     __try {
-        ObserveBody(obj, newHp);
+        ObserveBody(obj, newHp, oldHp);
     } __except (EXCEPTION_EXECUTE_HANDLER) {
     }
 }
@@ -469,21 +499,55 @@ static void ResumeOthers(HANDLE* handles, int n) {
     }
 }
 
+// Damage sites are real calls, so the caller already treats xmm0-xmm5 as dead.
+// They are saved anyway because HealthObserve runs through SEH. Do not hook the
+// HUD gauge at 0xBD54A0: xmm7 is live there, and a clobber writes a huge width
+// to gauge+0x160 while vitality stays 320.
+static int EmitXmmSave(uint8_t* code, int n) {
+    const uint8_t save[] = {
+        0x0F, 0x29, 0x44, 0x24, 0x20,
+        0x0F, 0x29, 0x4C, 0x24, 0x30,
+        0x0F, 0x29, 0x54, 0x24, 0x40,
+        0x0F, 0x29, 0x5C, 0x24, 0x50,
+        0x0F, 0x29, 0x64, 0x24, 0x60,
+        0x0F, 0x29, 0x6C, 0x24, 0x70,
+    };
+    memcpy(code + n, save, sizeof(save));
+    return n + (int)sizeof(save);
+}
+
+static int EmitXmmLoad(uint8_t* code, int n) {
+    const uint8_t load[] = {
+        0x0F, 0x28, 0x44, 0x24, 0x20,
+        0x0F, 0x28, 0x4C, 0x24, 0x30,
+        0x0F, 0x28, 0x54, 0x24, 0x40,
+        0x0F, 0x28, 0x5C, 0x24, 0x50,
+        0x0F, 0x28, 0x64, 0x24, 0x60,
+        0x0F, 0x28, 0x6C, 0x24, 0x70,
+    };
+    memcpy(code + n, load, sizeof(load));
+    return n + (int)sizeof(load);
+}
+
 static bool PatchSite(uint8_t* target, uint8_t* block) {
     if (!Relocatable(target) || !block) return false;
-    uint8_t code[160];
+    uint8_t code[320];
     int n = 0;
     auto b = [&](uint8_t x) { code[n++] = x; };
     auto seq = [&](std::initializer_list<uint8_t> xs) { for (uint8_t x : xs) b(x); };
+    seq({0x44, 0x8B, 0x9B, 0x30, 0x01, 0x00, 0x00});
     seq({0x89, 0x83, 0x30, 0x01, 0x00, 0x00});
     seq({0x9C, 0x56, 0x50, 0x51, 0x52});
     seq({0x41, 0x50, 0x41, 0x51, 0x41, 0x52, 0x41, 0x53});
-    seq({0x48, 0x89, 0xD9, 0x89, 0xC2, 0x48, 0x89, 0xE6, 0x48, 0x83, 0xE4, 0xF0, 0x48, 0x83, 0xEC, 0x20});
+    seq({0x48, 0x89, 0xD9, 0x89, 0xC2, 0x45, 0x8B, 0xC3, 0x48, 0x89, 0xE6, 0x48, 0x83, 0xE4, 0xF0, 0x48, 0x81, 0xEC, 0x80, 0x00, 0x00, 0x00});
+    n = EmitXmmSave(code, n);
     b(0x48); b(0xB8);
     void* fn = (void*)&HealthObserve;
     memcpy(code + n, &fn, 8);
     n += 8;
-    seq({0xFF, 0xD0, 0x48, 0x89, 0xF4});
+    seq({0xFF, 0xD0});
+    n = EmitXmmLoad(code, n);
+    seq({0x48, 0x89, 0xF4});
     seq({0x41, 0x5B, 0x41, 0x5A, 0x41, 0x59, 0x41, 0x58});
     seq({0x5A, 0x59, 0x58, 0x5E, 0x9D});
     b(0x48); b(0xB8);
@@ -555,14 +619,18 @@ void LifeEnsureWatch() {
             while (left > sizeof(hooked) && already < 4) {
                 uint8_t* hit = FindPattern(cursor, left, hooked, sizeof(hooked));
                 if (!hit) break;
-                already += 1;
+                // Our patch is 8B 00 E9 rel32 90, then the original 85 C0.
+                // A bare 8B 00 E9 shows up in other code and must not end the search.
+                size_t fromHit = (size_t)((base + size) - hit);
+                bool ours = fromHit >= 10 && hit[7] == 0x90 && hit[8] == 0x85 && hit[9] == 0xC0;
+                if (ours) already += 1;
                 size_t step = (size_t)(hit - cursor) + sizeof(hooked);
                 if (step >= left) break;
                 cursor = hit + sizeof(hooked);
                 left -= step;
             }
         }
-        if (already > 0) {
+        if (already == 2) {
             strcpy_s(g_watch, "old hook already there");
             Log("Health watch left alone. The old mod already patched those sites.");
             g_watchOn = true;
@@ -608,8 +676,8 @@ void LifeEnsureWatch() {
         LogFail("Health watch patch failed.");
         return;
     }
-    strcpy_s(g_watch, "pattern hits 2, hooked 2");
-    Log("Health watch on. Pattern hits 2, hooked 2.");
+    strcpy_s(g_watch, "damage 2");
+    Log("Health watch on. Damage sites 2.");
 }
 
 static void Drain() {
@@ -624,7 +692,7 @@ static void Drain() {
     LeaveCriticalSection(&g_qCs);
     for (int i = 0; i < n; ++i) {
         Apply(local[i].action, local[i].maxHp);
-        if (local[i].action == ActBlock && g_life.rule[ActBlock].gourdCharges <= 0.f) OnGourdGuard();
+        if (local[i].action == ActParry) OnGourdGuard();
     }
     if (!g_idLogged && g_idRejects > 0) {
         g_idLogged = true;
@@ -641,6 +709,10 @@ void LifeTick() {
         g_statsLogged = true;
         Logf("Wolf vitality %d / %d, posture %d / %d, gourd %d.", v.hp, v.maxHp, v.posture, v.maxPosture, v.gourd);
     }
+    PlayerApplyScales(g_life.healthTenths, g_life.postureTenths);
+    PlayerEnforceGourd();
+    PlayerEnforceHp();
+    PlayerEnforceEmblems();
     if (g_life.infiniteEmblems) PlayerFillEmblems();
     if (g_life.infiniteHp) PlayerFillHp();
     else if (g_life.undeath) {
@@ -658,7 +730,10 @@ static bool WolfFromCtrl(uint8_t* ctrl) {
     uint8_t* box = *(uint8_t**)(chr + 0x1FF8);
     if (!Readable(box + 0x18, 8)) return false;
     uint8_t* combat = *(uint8_t**)(box + 0x18);
-    if (IsWolfId(combat)) return true;
+    if (IsWolfId(combat)) {
+        PlayerKeepWolf(combat);
+        return true;
+    }
     if (!LooksLikeId(combat)) {
         static bool logged = false;
         if (!logged) {
@@ -731,7 +806,7 @@ static uint8_t* FindOne(const uint8_t* sig, size_t sigLen, int* seen) {
 
 static bool PatchGuard(uint8_t* target, uint8_t* block, void* fn) {
     if (!target || !block || !fn) return false;
-    uint8_t code[160];
+    uint8_t code[320];
     int n = 0;
     auto b = [&](uint8_t x) { code[n++] = x; };
     auto seq = [&](std::initializer_list<uint8_t> xs) { for (uint8_t x : xs) b(x); };
@@ -740,11 +815,14 @@ static bool PatchGuard(uint8_t* target, uint8_t* block, void* fn) {
     seq({0x9C, 0x56, 0x50, 0x51, 0x52});
     seq({0x41, 0x50, 0x41, 0x51, 0x41, 0x52, 0x41, 0x53});
     seq({0x49, 0x8B, 0xCC, 0x4C, 0x89, 0xFA});
-    seq({0x48, 0x89, 0xE6, 0x48, 0x83, 0xE4, 0xF0, 0x48, 0x83, 0xEC, 0x20});
+    seq({0x48, 0x89, 0xE6, 0x48, 0x83, 0xE4, 0xF0, 0x48, 0x81, 0xEC, 0x80, 0x00, 0x00, 0x00});
+    n = EmitXmmSave(code, n);
     b(0x48); b(0xB8);
     memcpy(code + n, &fn, 8);
     n += 8;
-    seq({0xFF, 0xD0, 0x48, 0x89, 0xF4});
+    seq({0xFF, 0xD0});
+    n = EmitXmmLoad(code, n);
+    seq({0x48, 0x89, 0xF4});
     seq({0x41, 0x5B, 0x41, 0x5A, 0x41, 0x59, 0x41, 0x58});
     seq({0x5A, 0x59, 0x58, 0x5E, 0x9D});
     b(0x48); b(0xB8);

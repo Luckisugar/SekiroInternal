@@ -34,6 +34,10 @@ struct LifeSettings {
     int miniBossVitalityAtLeast;
     int bossVitalityAtLeast;
     int gourdChargeCap;
+    // Tenths of a multiplier. 10 is 1.0x, 1 is 0.1x, 1000 is 100.0x.
+    int damageTenths;
+    int healthTenths;
+    int postureTenths;
 };
 
 LifeSettings* LifeGet();
