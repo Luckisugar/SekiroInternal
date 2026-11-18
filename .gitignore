@@ -1,13 +1,23 @@
-build/
+# Compiler output. The drop-in DLLs at the repo root are tracked on purpose.
+**/build/
 *.obj
-*.dll
-*.exe
 *.pdb
 *.ilk
 *.exp
 *.lib
+*.tlog
+*.recipe
+*.lastbuildstate
+CMakeCache.txt
+CMakeFiles/
+
+# Dev injector. Not part of the drop-in.
+/Inject.exe
+
+# Runtime logs. Not part of the drop-in.
 activity.log
 last-error.txt
 imgui.ini
-settings.ini
-ui-language.txt
+*.log
+sekiro.dxvk-cache
+__folder_managed_by_vortex

@@ -1,0 +1,113 @@
+[       0.3] PreciseDeflectFlash 1.0.1
+[       0.3] folder: A:\Games\Sekiro - Shadows Die Twice\PreciseDeflectFlash
+[       0.4] exe: A:\Games\Sekiro - Shadows Die Twice\sekiro.exe
+[       0.4] exe file version 1.6.0.0, image base 140000000 size 42d2000
+[       0.4] logger: Enabled=0 PollMs=4 Radius=25.0 MarkerKey=121 Beep=0 Dumps=0 CopyEnemyFiles=0
+[      11.5] cue settings: press 200 ms before the hit, default hit delay 50 ms, banner 0 ms early, range 8.0 m, learn 1, shrink curve 1.00
+[      11.5] buttons: guard key 2, attack key 1, controller guard 0x100, attack 0x200
+[      11.5] show: diamond 1, banner 0, beat bar 0, fight card 0, feedback 0, sound 0, cues for sweeps 1 grabs 1 perilous 1
+[      11.5] sound: off, volume 0.60, offset +0 ms, 3 tick(s) 250 ms apart, target tone 1
+[      12.1] learned timing: 625 attack(s) loaded
+[      18.1] coach: 442 personal timings, 545 distance fits, 2699 combo links, mikiri lead 219 ms (personal timing on)
+[      18.8] combos: 561 quick follow-up links (attack -> next attack)
+[      48.2] coach: loaded; coach on (trial off)
+[      48.2] XInput: available
+[      48.3] Oodle decompressor: found
+[      49.8] params: could not read mods\param\gameparam\gameparam.parambnd.dcx (not KRAK)
+[      90.3] archives: Data1.bhd lists 1183 files (40 ms)
+[     148.7] params from the game archives: 2396 attacks, 3128 behaviors, 1279 characters
+[     201.1] AOB scan took 153 ms
+[     201.1] WorldChrMan pattern A hit at rva 79282f -> rva 3d7a1e0
+[     201.1] WorldChrMan pattern B hit at rva a66d96 -> rva 3d7a1e0
+[     201.1] WorldChrMan pattern B hit at rva a6704f -> rva 3d88568
+[     201.1] WorldChrMan pattern B hit at rva a671a5 -> rva 3d9b988
+[     201.1] WorldChrMan pattern B hit at rva a672d8 -> rva 3d882f0
+[     201.1] WorldChrMan pointer at rva 3d7a1e0 (4 candidate(s), matches the version table)
+[     201.1] LockTgtMan pattern hit at rva b30e0d -> rva 3d78058
+[     201.1] LockTgtMan pointer: resolved
+[    1865.8] overlay: hooks installed (present 0, resize 0, present1 0)
+[    6201.3] overlay: ready (1920x1080, format 28, windowed)
+[   18543.1] state: in game
+[   24814.1] ---- validation (player ChrIns 7ff4a5e1b420, handle 10050000, model c0000, vtable rva 2a2b338)
+[   24827.5] player chain (world+0x88, ChrIns+0x1ff8, data+0x130): OK
+[   24864.9] player HP 480/480 posture 207/207
+[   24877.3] player position -110.85 54.08 236.76
+[   24887.7] player animation speed 1.000 (plausible)
+[   25310.7] animation ring: head 1 -> 7, latest id 790010 time 2.410 dur 4.000 seq 1786 (moving, OK)
+[   25310.8] animation ring: highest seq in slot 1, newest by head is slot 6 (check)
+[   25310.8] animation ring slots: [0] id 790010 t 2.389 seq 1786; [1] id 0 t 0.403 seq 2048; [2] id 790010 t 2.396 seq 1786; [3] id 0 t 0.410 seq 2048; [4] id 790010 t 2.403 seq 1786; [5] id 0 t 0.417 seq 2048; [6] id 790010 t 2.410 seq 1786; [7] id 0 t 0.389 seq 2048; [8] id 790010 t 2.382 seq 1786; [9] id 0 t 0.396 seq 2048; 
+[   25333.9] character table at world+0x518: OK
+[   26870.1] characters loaded: 326
+[   26878.7] special effects (OK): 127010 140100 9280 9480 900300 5221 5222 5223 150000 150010 150400 150700 150710 150720 150201 8600 4302 3995000 106000 3999 160001 159997 40 100272 100249 
+[   26882.6] ---- summary: player=1 ring=1 characters=1 hp=1 effects=1 speed=1 lockman=1 => READY
+[   26894.8] archives: Data2.bhd lists 165 files (11 ms)
+[   26921.9] archives: Data3.bhd lists 571 files (27 ms)
+[   26922.4] model c1001: c1001.anibnd.dcx -> 1 TAE file(s)
+[   26922.5] model c1001: no attacks of its own, trying c1000's animations (behavior variation 0)
+[   26923.0] model c1001: c1000.anibnd.dcx -> 1 TAE file(s)
+[   26923.1] model c1001: 1 attacking animations ready
+[   26936.4] model c1400: c1400.anibnd.dcx -> 1 TAE file(s)
+[   26936.6] model c1400: 36 attacking animations ready
+[   26946.7] model c1450: c1450.anibnd.dcx -> 1 TAE file(s)
+[   26946.8] model c1450: 74 attacking animations ready
+[   27023.7] archives: Data4.bhd lists 1397 files (76 ms)
+[   27349.7] archives: Data5.bhd lists 5449 files (326 ms)
+[   27350.0] model c5430: c5430.anibnd.dcx not in the game archives
+[   27350.0] model c5430: no archive of its own, trying c5400's animations (behavior variation 54000)
+[   27370.8] model c5430: c5400.anibnd.dcx -> 1 TAE file(s)
+[   27371.2] model c5430: 103 attacking animations ready
+[   27379.4] model c7100: c7100.anibnd.dcx -> 1 TAE file(s)
+[   27379.6] model c7100: 67 attacking animations ready
+[   27388.7] model c7110: c7110.anibnd.dcx -> 1 TAE file(s)
+[   27388.9] model c7110: 60 attacking animations ready
+[   27392.3] model c7200: c7200.anibnd.dcx -> 1 TAE file(s)
+[   27392.4] model c7200: 0 attacking animations ready
+[   27402.7] model c7400: c7400.anibnd.dcx -> 1 TAE file(s)
+[   27402.9] model c7400: 34 attacking animations ready
+[   41884.8] non-system modules loaded in the game:
+[   41884.8]   module A:\Games\Sekiro - Shadows Die Twice\sekiro.exe
+[   41884.9]   module A:\Games\Sekiro - Shadows Die Twice\dxgi.dll
+[   41884.9]   module A:\Games\Sekiro - Shadows Die Twice\steam_api64.dll
+[   41884.9]   module A:\Games\Sekiro - Shadows Die Twice\amd_ags_x64.dll
+[   41884.9]   module A:\Games\Sekiro - Shadows Die Twice\fmodex64.dll
+[   41884.9]   module A:\Games\Sekiro - Shadows Die Twice\fmod_event64.dll
+[   41884.9]   module A:\Games\Sekiro - Shadows Die Twice\oo2core_6_win64.dll
+[   41884.9]   module A:\Games\Sekiro - Shadows Die Twice\bink2w64.dll
+[   41884.9]   module A:\Games\Sekiro - Shadows Die Twice\d3d9.dll
+[   41884.9]   module A:\Games\Sekiro - Shadows Die Twice\DINPUT8.dll
+[   41884.9]   module A:\Games\Sekiro - Shadows Die Twice\d3d11.dll
+[   41884.9]   module A:\Games\Sekiro - Shadows Die Twice\sekiro_perf.dll
+[   41884.9]   module A:\Games\Sekiro - Shadows Die Twice\WeaponWheel.dll
+[   41885.0]   module A:\Games\Sekiro - Shadows Die Twice\PreciseDeflectFlash.dll
+[   41885.0]   module C:\ProgramData\obs-studio-hook\graphics-hook64.dll
+[   41885.0]   module A:\Games\Sekiro - Shadows Die Twice\SekiroInternal.dll
+[   41885.4] window: client 1920x1080, style 96000000, borderless or fullscreen, monitor 1920x1080
+[   41885.4] game folder has modengine.ini                            yes
+[   41885.4] game folder has mods                                     yes
+[   41885.5] game folder has chr                                      no
+[   41885.5] game folder has param\gameparam\gameparam.parambnd.dcx   no
+[   41885.5] game folder has Data1.bhd                                yes
+[   41885.5] game folder has Data5.bdt                                yes
+[   41885.6] game folder has oo2core_6_win64.dll                      yes
+[   41885.6] game folder has dxgi.dll                                 yes
+[   41885.6] game folder has d3d11.dll                                yes
+[   41885.6] game folder has reshade.ini                              no
+[   41886.0] chr\*.anibnd.dcx files: 0
+[   59020.8] model c1020: c1020.anibnd.dcx -> 1 TAE file(s)
+[   59021.0] model c1020: 58 attacking animations ready
+[   70380.8] model c1110: c1110.anibnd.dcx -> 1 TAE file(s)
+[   70380.9] model c1110: 2 attacking animations ready
+[  322236.4] model c1010: c1010.anibnd.dcx -> 1 TAE file(s)
+[  322236.7] model c1010: 66 attacking animations ready
+[  414531.6] model c5410: c5410.anibnd.dcx -> 1 TAE file(s)
+[  414531.7] model c5410: 0 attacking animations ready
+[  428309.4] first lock-on: handle 100080e4 -> ChrIns 7ff4a35f6e50 model c1450 npc 268468452
+[  466029.2] coach: Hit 2 times while attacking: stop swinging when a ring appears.
+[  466029.3] fight: 10 of 20 deflected/countered (4 early, 4 late, 2 held instead of pressing, 0 too soon); press vs cue median +10 ms, spread +-40 ms
+[  466029.3] fight: combo follow-ups 6 of 12 deflected (2 held, 0 too soon), combo window +0 ms
+[  493283.1] coach: Clean fight. Keep pressing on every ring.
+[  493283.1] fight: 3 of 7 deflected/countered (4 early, 0 late, 0 held instead of pressing, 0 too soon); press vs cue median -63 ms, spread +-302 ms
+[  493283.1] fight: combo follow-ups 3 of 4 deflected (0 held, 0 too soon), combo window +0 ms
+[  571872.2] coach: Hit 4 times while attacking: stop swinging when a ring appears.
+[  571872.2] fight: 8 of 19 deflected/countered (3 early, 8 late, 0 held instead of pressing, 0 too soon); press vs cue median +74 ms, spread +-98 ms
+[  571872.2] fight: combo follow-ups 5 of 9 deflected (0 held, 0 too soon), combo window +0 ms
